@@ -18,7 +18,8 @@
 # 2019 (C) Stefan Marsiske <7o5rfu92t@ctrlc.hu>
 
 from operator import itemgetter
-import copy, functools
+from copy import deepcopy
+import functools
 
 def normalize_obj(obj):
     if type(obj) == bytes:
@@ -156,7 +157,7 @@ def sortpaths(a,b):
     return 0
 
 def patch(obj, changes, guess=False, date=''):
-    res = copy.deepcopy(obj)
+    res = deepcopy(obj)
     for l in sorted({len(x['path']) for x in changes}):
         # first handle deletes, they are indexed based on the old indexes
         #for change in sorted(changes, key=lambda x: x['path'], reverse=True):
@@ -192,9 +193,9 @@ def patch(obj, changes, guess=False, date=''):
                 return
             #print("\tadding", change['path'])
             if isinstance(obj,list):
-                obj.insert(change['path'][-1],copy.deepcopy(change['data']))
+                obj.insert(change['path'][-1],deepcopy(change['data']))
             else:
-                obj[change['path'][-1]]=copy.deepcopy(change['data'])
+                obj[change['path'][-1]]=deepcopy(change['data'])
 
         # handle changes
         for change in changes:
@@ -212,7 +213,7 @@ def patch(obj, changes, guess=False, date=''):
                 return
             elif obj[change['path'][-1]]==change['data'][0]:
                 #print("\tchanging", change['path'])
-                obj[change['path'][-1]]=copy.deepcopy(change['data'][1])
+                obj[change['path'][-1]]=deepcopy(change['data'][1])
             else:
                 print("wtf", change, obj)
     return res
@@ -221,7 +222,7 @@ def patch(obj, changes, guess=False, date=''):
 #
 # todo write tests for revert
 def revert(obj, changes):
-    res = copy.deepcopy(obj)
+    res = deepcopy(obj)
     clen = len(changes)
     for l in sorted({len(x['path']) for x in changes}, reverse=True):
         # undo deletes
@@ -235,9 +236,9 @@ def revert(obj, changes):
                 return
             #print("\tadding", change['path'])
             if isinstance(obj,list):
-                obj.insert(change['path'][-1],copy.deepcopy(change['data']))
+                obj.insert(change['path'][-1],deepcopy(change['data']))
             else:
-                obj[change['path'][-1]]=copy.deepcopy(change['data'])
+                obj[change['path'][-1]]=deepcopy(change['data'])
 
         # undo adds, they are indexed based on the new indexes
         for change in sorted(changes, key=functools.cmp_to_key(sortpaths)):
@@ -276,7 +277,7 @@ def revert(obj, changes):
                 return
             elif obj[change['path'][-1]]==change['data'][1]:
                 #print("\tchanging", change['path'])
-                obj[change['path'][-1]]=copy.deepcopy(change['data'][0])
+                obj[change['path'][-1]]=deepcopy(change['data'][0])
             else:
                 print("wtf change: %s\nobj: %s" % (change, obj))
 
