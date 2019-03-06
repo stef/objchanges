@@ -79,7 +79,7 @@ def normalize_list(obj):
             objorder[tuple(x)] = i
         else:
             objset.add(x)
-            objorder[i]=x
+            objorder[x] = i
     # see the expanded & verbose/robust for loop above
     #objset=[hashabledict(x) if isinstance(x,dict) else
     #        tuple(x) if isinstance(x, list) else
