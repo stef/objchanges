@@ -52,13 +52,6 @@ def diff(old, new, path=[]):
         return [{'type': u'changed', 'data': (old, new), 'path': path}]
     return
 
-class hashabledict(dict):
-    val = None
-    def __hash__(self):
-        if not self.val:
-            self.val=hash(str(sorted(self.items())))
-        return self.val
-
 def normalize_list(obj):
     if not obj: return set(), {}
     objset = set()
@@ -129,6 +122,13 @@ def difflist(old, new, path):
     if oldunique:
         ret.extend(sorted([{'type': u'deleted', 'data': e, 'path': path + [oldorder[e]]} for e in oldunique], key=itemgetter('path')))
     return ret
+
+class hashabledict(dict):
+    val = None
+    def __hash__(self):
+        if not self.val:
+            self.val=hash(str(sorted(self.items())))
+        return self.val
 
 #### patch stuff starts here ####
 
