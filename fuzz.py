@@ -30,24 +30,38 @@ def rnd_str(size=3):
 def rnd_obj():
     return choice(({},[],choice((5,23,42,3,17,1749)), rnd_str()))
 
-def del_path(paths, path):
-    if path == tuple(): return set()
-    for p in list(paths):
-        if p[:len(path)]==path: paths.remove(p)
-    return paths
-
-def mutate(old, paths):
+def mutate(old):
     for _ in range(choice((1,5,20))):
         while True:
-            new, paths= evolve(old, paths)
-            if old != new: return new, paths
+            new = evolve(old)
+            if old != new: return new
 
-def evolve(old, paths):
+def getpaths(obj):
+    res = [tuple()]
+    res.extend(_getpaths(obj, tuple()))
+    return tuple(res)
+
+def _getpaths(obj, path):
+    res = []
+    if hasattr(obj,'keys'):
+        for k in obj.keys():
+            res.append(path + tuple([k]))
+            tmp = _getpaths(obj[k], path + tuple([k]))
+            if tmp: res.extend(x for x in tmp if x)
+        return tuple(res)
+    elif hasattr(obj,'__iter__') and not isinstance(obj,str):
+        for k in range(len(obj)):
+            res.append(path + tuple([k]))
+            tmp = _getpaths(obj[k], path + tuple([k]))
+            if tmp: res.extend(x for x in tmp if x)
+        return res
+
+def evolve(old):
     obj = deepcopy(old)
     # chose which item to change
     done = False
     while not done:
-        path = choice(tuple(paths))
+        path = choice(getpaths(obj))
         item = getitem(obj, path)
         operation = choice(('add', 'del'))
         if operation == 'add':
@@ -56,43 +70,36 @@ def evolve(old, paths):
                 if not tmp: continue
                 k = choice(tmp)
                 item[k]=rnd_obj()
-                paths.add(path + tuple([k]))
                 done = True
             elif isinstance(item,list):
                 if len(item)>5: continue
-                item.insert(randrange(len(item)+1), rnd_obj())
-                paths.add(path + tuple([len(item)-1]))
+                item.insert(randrange(len(item)) if len(item) else 0, rnd_obj())
                 done = True
         elif operation == 'del':
             if isinstance(item, dict):
                 if not item: continue
                 k = choice(tuple(item.keys()))
                 del item[k]
-                paths=del_path(paths,path + tuple(k,))
                 done=True
             elif isinstance(item,list):
                 if len(item) == 0: continue
                 i = randrange(len(item))
                 del item[i]
-                paths=del_path(paths,path + tuple([len(item)]))
                 done=True
-    return obj, paths
+    return obj
 
 old={}
-oldpaths=set([tuple(),])
 i = 0
 while True:
     print("\r%d" % i, end='')
     #print(old)
-    #print(oldpaths)
-    new, newpaths = mutate(old,oldpaths)
+    new = mutate(old)
     try:
         d = diff(old, new)
         assert diff(new, patch(old, d)) in [None, []]
     except:
-        print("\nfail:\nold {!r}\nold paths{!r}\nnew {!r}\nnewpaths {!r}\ndiff {!r}".format(old,oldpaths,new,newpaths,d))
+        print("\nfail:\nold {!r}\nnew {!r}\ndiff {!r}".format(old,new,d))
         raise
         traceback.print_exc()
     old = new
-    oldpaths = newpaths
     i += 1
