@@ -18,6 +18,7 @@
 # 2019 (C) Stefan Marsiske <7o5rfu92t@ctrlc.hu>
 
 import string
+from copy import deepcopy
 from random import choice, choices, randrange
 from objchanges import getitem, diff, patch
 
@@ -34,7 +35,8 @@ def del_path(paths, path):
         if p[:len(path)]==path: paths.remove(p)
     return paths
 
-def evolve(obj, paths):
+def evolve(old, paths):
+    obj = deepcopy(old)
     # chose which item to change
     done = False
     while not done:
