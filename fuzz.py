@@ -98,9 +98,11 @@ def evolve(old, paths):
 
 old={}
 paths=set([tuple(),])
+print(old)
+print(paths)
 while True:
-    print(old)
-    print(paths)
     new, paths = evolve(old,paths)
+    print(new)
+    print(paths)
     assert diff(new, patch(old, diff(old, new))) in [None, []]
     old = new
