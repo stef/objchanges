@@ -61,13 +61,13 @@ def evolve(old, paths):
                 if not item: continue
                 k = choice(tuple(item.keys()))
                 del item[k]
-                del_path(paths,tuple(path + tuple(k,)))
+                paths=del_path(paths,path + tuple(k,))
                 done=True
             elif isinstance(item,list):
                 if len(item) == 0: continue
                 i = randrange(len(item))
                 del item[i]
-                del_path(paths,tuple(path + tuple([len(item)])))
+                paths=del_path(paths,path + tuple([len(item)]))
                 done=True
         #else: # operation == "change"
         #    if isinstance(item, dict):
