@@ -35,6 +35,13 @@ def del_path(paths, path):
         if p[:len(path)]==path: paths.remove(p)
     return paths
 
+def mutate(old, paths):
+    for _ in range(choice((1,5,20))):
+        while True:
+            new, paths= evolve(old, paths)
+            if old != new: break
+    return new, paths
+
 def evolve(old, paths):
     obj = deepcopy(old)
     # chose which item to change
@@ -97,12 +104,20 @@ def evolve(old, paths):
     return obj, paths
 
 old={}
-paths=set([tuple(),])
-print(old)
-print(paths)
+oldpaths=set([tuple(),])
+i = 0
 while True:
-    new, paths = evolve(old,paths)
-    print(new)
-    print(paths)
-    assert diff(new, patch(old, diff(old, new))) in [None, []]
+    print("\r%d" % i, end='')
+    #print(old)
+    #print(oldpaths)
+    new, newpaths = mutate(old,oldpaths)
+    try:
+        d = diff(old, new)
+        assert diff(new, patch(old, d)) in [None, []]
+    except:
+        print("\nfail:\nold {!r}\nold paths{!r}\nnew {!r}\nnewpaths {!r}\ndiff {!r}".format(old,oldpaths,new,newpaths,d))
+        raise
+        traceback.print_exc()
     old = new
+    oldpaths = newpaths
+    i += 1
