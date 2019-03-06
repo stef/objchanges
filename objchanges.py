@@ -86,8 +86,6 @@ def normalize_list(obj):
 def difflist(old, new, path):
     oldset,oldorder=normalize_list(old)
     newset,neworder=normalize_list(new)
-    oldunique=sorted(set(oldset) - set(newset), key=lambda x: oldorder[x])
-    newunique=sorted(set(newset) - set(oldset), key=lambda x: neworder[x])
     if len(oldset) != len(old) or len(newset) != len(new):
         # we have duplicate elements in the list, fallback to naive difflist
         os = len(old)
@@ -112,6 +110,8 @@ def difflist(old, new, path):
                 ret.extend(diff(oe,ne,path + [i]))
         return ret
 
+    oldunique=sorted(set(oldset) - set(newset), key=lambda x: oldorder[x])
+    newunique=sorted(set(newset) - set(oldset), key=lambda x: neworder[x])
     # all the same
     if not (oldunique or newunique): return
     #import code; code.interact(local=locals());
