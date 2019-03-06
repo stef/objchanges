@@ -76,31 +76,6 @@ def evolve(old, paths):
                 del item[i]
                 paths=del_path(paths,path + tuple([len(item)]))
                 done=True
-        #else: # operation == "change"
-        #    if isinstance(item, dict):
-        #        if not item: continue
-        #        if choice(('k','v')) == 'k':
-        #            #change key
-        #            tmp = list(dict_keys - set(item.keys()))
-        #            if not tmp: continue
-        #            ok = choice(tuple(item.keys()))
-        #            nk = choice(tmp)
-        #            item[nk] = item[ok]
-        #            del item[ok]
-        #            paths.remove(tuple(path + tuple(ok,)))
-        #            paths.add(tuple(path + tuple(nk,)))
-        #            # todo rename all paths ok -> nk
-        #            done=True
-        #        else:
-        #            # change value
-        #            k = choice(tuple(item.keys()))
-        #            item[k]=rnd_obj()
-        #            done=True
-        #    elif isinstance(item, list):
-        #        if not item: continue
-        #        i = randrange(len(item)+1)
-        #        item[i]=rnd_obj()
-        #        # todo remove paths that were belonging to the changed item if it is a dict/list
     return obj, paths
 
 old={}
