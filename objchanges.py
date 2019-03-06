@@ -41,8 +41,7 @@ def diff(old, new, path=[]):
         res=[]
         for k in set(list(old.keys()) + list((new or {}).keys())):
             r=diff(old.get(k),(new or {}).get(k), path+[k])
-            if r:
-                res.extend(r)
+            res.extend(r)
         return res
     if hasattr(old,'__iter__') and not isinstance(old,str):
         return difflist(old, new, path)
@@ -50,7 +49,7 @@ def diff(old, new, path=[]):
            ''.join(old.split()).lower() != ''.join(new.split()).lower()) or
           old != new):
         return [{'type': u'changed', 'path': path, 'data': (old, new)}]
-    return
+    return []
 
 def normalize_list(obj):
     if not obj: return set(), {}
@@ -113,7 +112,7 @@ def difflist(old, new, path):
     oldunique=sorted(oldset - newset, key=lambda x: oldorder[x])
     newunique=sorted(newset - oldset, key=lambda x: neworder[x])
     # all the same
-    if not (oldunique or newunique): return
+    if not (oldunique or newunique): return []
     #import code; code.interact(local=locals());
     ret=[]
     for oe in list(oldunique):
