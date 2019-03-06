@@ -88,6 +88,30 @@ def difflist(old, new, path):
     newset,neworder=normalize_list(new)
     oldunique=sorted(set(oldset) - set(newset), key=lambda x: oldorder[x])
     newunique=sorted(set(newset) - set(oldset), key=lambda x: neworder[x])
+    if len(oldset) != len(old) or len(newset) != len(new):
+        # we have duplicate elements in the list, fallback to naive difflist
+        os = len(old)
+        ns = len(new)
+        ret = []
+        if os>ns:
+            for i, (oe, ne) in enumerate(zip(old[:ns],new)):
+                ret.extend(diff(oe,ne,path + [i]))
+            ret.extend(sorted([{'type': u'deleted',
+                                'path': path + [ns+i],
+                                'data': oe}
+                               for i in range(os - ns)], key=itemgetter('path')))
+        elif ns>os:
+            for i, (oe, ne) in enumerate(zip(old,new[:os])):
+                ret.extend(diff(oe,ne,path + [i]))
+            ret.extend(sorted([{'type': u'added',
+                                'path': path + [os+i],
+                                'data': ne}
+                               for i in range(ns - os)], key=itemgetter('path')))
+        else:
+            for i, (oe, ne) in enumerate(zip(old,new)):
+                ret.extend(diff(oe,ne,path + [i]))
+        return ret
+
     # all the same
     if not (oldunique or newunique): return
     #import code; code.interact(local=locals());
