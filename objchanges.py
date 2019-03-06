@@ -33,20 +33,20 @@ def diff(old, new, path=[]):
     new=normalize_obj(new)
     if old==None and new!=None:
         return [{'type': 'added', 'path': path, 'data': new}]
-    elif new==None and old!=None:
+    if new==None and old!=None:
         return [{'type': 'deleted', 'path': path, 'data': old}]
     if not type(old)==type(new):
         return [{'type': 'changed', 'path': path, 'data': (old, new)}]
-    elif hasattr(old,'keys'):
+    if hasattr(old,'keys'):
         res=[]
         for k in set(list(old.keys()) + list((new or {}).keys())):
             r=diff(old.get(k),(new or {}).get(k), path+[k])
             if r:
                 res.extend(r)
         return res
-    elif hasattr(old,'__iter__') and not isinstance(old,str):
+    if hasattr(old,'__iter__') and not isinstance(old,str):
         return difflist(old, new, path)
-    elif (([type(x) for x in [old, new]] == [ str, str ] and
+    if (([type(x) for x in [old, new]] == [ str, str ] and
            ''.join(old.split()).lower() != ''.join(new.split()).lower()) or
           old != new):
         return [{'type': u'changed', 'path': path, 'data': (old, new)}]
