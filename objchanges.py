@@ -32,11 +32,11 @@ def diff(old, new, path=[]):
     old=normalize_obj(old)
     new=normalize_obj(new)
     if old==None and new!=None:
-        return [{'type': 'added', 'data': new, 'path': path}]
+        return [{'type': 'added', 'path': path, 'data': new}]
     elif new==None and old!=None:
-        return [{'type': 'deleted', 'data': old, 'path': path}]
+        return [{'type': 'deleted', 'path': path, 'data': old}]
     if not type(old)==type(new):
-        return [{'type': 'changed', 'data': (old, new), 'path': path}]
+        return [{'type': 'changed', 'path': path, 'data': (old, new)}]
     elif hasattr(old,'keys'):
         res=[]
         for k in set(list(old.keys()) + list((new or {}).keys())):
@@ -49,7 +49,7 @@ def diff(old, new, path=[]):
     elif (([type(x) for x in [old, new]] == [ str, str ] and
            ''.join(old.split()).lower() != ''.join(new.split()).lower()) or
           old != new):
-        return [{'type': u'changed', 'data': (old, new), 'path': path}]
+        return [{'type': u'changed', 'path': path, 'data': (old, new)}]
     return
 
 def normalize_list(obj):
@@ -128,9 +128,8 @@ def difflist(old, new, path):
         # find deep matches first
         if len(candidates) and (len(candidates[0][2])*3<=len(candidates[0][1]) if isinstance(candidates[0][1], list) else 3):
             if oldorder[oe] != neworder[candidates[0][1]]:
-                #ret.append({'type': u'moved', 'data': {"obj": oe, "new": neworder[candidates[0][1]]}, 'path': path + [oldorder[oe]]})
-                ret.append({'type': u'deleted', 'data': oe, 'path': path + [oldorder[oe]]})
-                ret.append({'type': u'added', 'data': oe, 'path': path + [neworder[candidates[0][1]]]})
+                ret.append({'type': u'deleted', 'path': path + [oldorder[oe]], 'data': oe})
+                ret.append({'type': u'added', 'path': path + [neworder[candidates[0][1]]], 'data': oe})
             #print(40*'=')
             #print(oldorder[oe], sorted(oe.items()))
             #print(neworder[candidates[0][1]], sorted(candidates[0][1].items()))
@@ -141,10 +140,10 @@ def difflist(old, new, path):
             newunique.remove(candidates[0][1])
     # handle added
     if newunique:
-        ret.extend(sorted([{'type': u'added', 'data': e, 'path': path + [neworder[e]]} for e in newunique], key=itemgetter('path')))
+        ret.extend(sorted([{'type': u'added', 'path': path + [neworder[e]], 'data': e} for e in newunique], key=itemgetter('path')))
     # handle deleted
     if oldunique:
-        ret.extend(sorted([{'type': u'deleted', 'data': e, 'path': path + [oldorder[e]]} for e in oldunique], key=itemgetter('path')))
+        ret.extend(sorted([{'type': u'deleted', 'path': path + [oldorder[e]], 'data': e} for e in oldunique], key=itemgetter('path')))
     return ret
 
 class hashabledict(dict):
