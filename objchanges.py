@@ -69,14 +69,14 @@ def normalize_list(obj):
             except:
                 print(x)
                 raise
-            objorder[i]=hashabledict(x)
+            objorder[hashabledict(x)] = i
         elif isinstance(x,list):
             try:
                 objset.add(tuple(x))
             except:
                 print(x)
                 raise
-            objorder[i]=tuple(x)
+            objorder[tuple(x)] = i
         else:
             objset.add(x)
             objorder[i]=x
