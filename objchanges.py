@@ -21,68 +21,39 @@ from operator import itemgetter
 from copy import deepcopy
 import functools
 
-def normalize_obj(obj):
-    if type(obj) == bytes:
-        return obj.decode('utf-8')
-    elif hasattr(obj, 'isoformat'):
-        return obj.isoformat()
-    return obj
+def diff(old,new):
+    o = normalize(deepcopy(old))
+    n = normalize(deepcopy(new))
+    return _diff(o, n, old, new)
 
-def diff(old, new, path=[]):
-    old=normalize_obj(old)
-    new=normalize_obj(new)
+def _diff(old, new, o, n, path=[]):
     if old==None and new!=None:
-        return [{'type': 'added', 'path': path, 'data': new}]
+        return [{'type': 'added', 'path': path, 'data': getitem(n,path)}]
     if new==None and old!=None:
-        return [{'type': 'deleted', 'path': path, 'data': old}]
+        return [{'type': 'deleted', 'path': path, 'data': getitem(o,path)}]
     if not type(old)==type(new):
-        return [{'type': 'changed', 'path': path, 'data': (old, new)}]
+        return [{'type': 'changed', 'path': path, 'data': (getitem(o,path), getitem(n,path))}]
     if hasattr(old,'keys'):
         res=[]
         for k in set(list(old.keys()) + list((new or {}).keys())):
-            r=diff(old.get(k),(new or {}).get(k), path+[k])
+            r=_diff(old.get(k),(new or {}).get(k), o, n, path+[k])
             res.extend(r)
         return res
     if hasattr(old,'__iter__') and not isinstance(old,str):
-        return difflist(old, new, path)
+        return difflist(old, new, o, n, path)
     if (([type(x) for x in [old, new]] == [ str, str ] and
            ''.join(old.split()).lower() != ''.join(new.split()).lower()) or
           old != new):
-        return [{'type': u'changed', 'path': path, 'data': (old, new)}]
+        return [{'type': u'changed', 'path': path, 'data': (getitem(o,path), getitem(n,path))}]
     return []
 
 def normalize_list(obj):
     if not obj: return set(), {}
-    objset = set()
-    objorder = {}
-    for i, x in enumerate(obj):
-        if isinstance(x,dict):
-            try:
-                objset.add(hashabledict(x))
-            except:
-                print(x)
-                raise
-            objorder[hashabledict(x)] = i
-        elif isinstance(x,list):
-            try:
-                objset.add(tuple(x))
-            except:
-                print(x)
-                raise
-            objorder[tuple(x)] = i
-        else:
-            objset.add(x)
-            objorder[x] = i
-    # see the expanded & verbose/robust for loop above
-    #objset=[hashabledict(x) if isinstance(x,dict) else
-    #        tuple(x) if isinstance(x, list) else
-    #        x for x in obj] # duplicates will be ignored
-    #objorder={hashabledict(e) if isinstance(e,dict) else
-    #        tuple(e) if isinstance(e, list) else
-    #        e: i for i, e in enumerate(obj)} # the last duplicates position will overwrite previous positions
+    objset=set(obj) # duplicates will be ignored
+    objorder={e: i for i, e in enumerate(obj)} # the last duplicates position will overwrite previous positions
     return objset, objorder
 
-def difflist(old, new, path):
+def difflist(old, new, o, n, path):
     oldset,oldorder=normalize_list(old)
     newset,neworder=normalize_list(new)
     if len(oldset) != len(old) or len(newset) != len(new):
@@ -92,21 +63,21 @@ def difflist(old, new, path):
         ret = []
         if os>ns:
             for i, (oe, ne) in enumerate(zip(old[:ns],new)):
-                ret.extend(diff(oe,ne,path + [i]))
+                ret.extend(_diff(oe,ne,o,n,path + [i]))
             ret.extend(sorted([{'type': u'deleted',
                                 'path': path + [ns+i],
-                                'data': oe}
+                                'data': getitem(o,path + [ns+i])}
                                for i in range(os - ns)], key=itemgetter('path')))
         elif ns>os:
             for i, (oe, ne) in enumerate(zip(old,new[:os])):
-                ret.extend(diff(oe,ne,path + [i]))
+                ret.extend(_diff(oe,ne,o,n,path + [i]))
             ret.extend(sorted([{'type': u'added',
                                 'path': path + [os+i],
-                                'data': ne}
+                                'data': getitem(n,path + [os+i])}
                                for i in range(ns - os)], key=itemgetter('path')))
         else:
             for i, (oe, ne) in enumerate(zip(old,new)):
-                ret.extend(diff(oe,ne,path + [i]))
+                ret.extend(_diff(oe,ne,o,n,path + [i]))
         return ret
 
     oldunique=sorted(oldset - newset, key=lambda x: oldorder[x])
@@ -117,32 +88,25 @@ def difflist(old, new, path):
     ret=[]
     for oe in list(oldunique):
         candidates=sorted([(oe, ne,
-                            diff(oe,
-                                 ne,
-                                 path + [neworder[tuple(ne)]
-                                         if isinstance(ne,list)
-                                         else neworder[ne]]))
+                            _diff(oe, ne, o, n,
+                                 path + [neworder[ne]]))
                             for ne in list(newunique)],
                            key=lambda a: len(a[2]))
         # find deep matches first
-        if len(candidates) and (len(candidates[0][2])*3<=len(candidates[0][1]) if isinstance(candidates[0][1], list) else 3):
+        if len(candidates) and (len(candidates[0][2])*3<=(len(candidates[0][1]) if isinstance(candidates[0][1], tuple) else 3)):
             if oldorder[oe] != neworder[candidates[0][1]]:
-                ret.append({'type': u'deleted', 'path': path + [oldorder[oe]], 'data': oe})
-                ret.append({'type': u'added', 'path': path + [neworder[candidates[0][1]]], 'data': oe})
-            #print(40*'=')
-            #print(oldorder[oe], sorted(oe.items()))
-            #print(neworder[candidates[0][1]], sorted(candidates[0][1].items()))
-            #print(candidates[0][2])
-            #print(40*'-')
+                oldobj = getitem(o, path + [oldorder[oe]])
+                ret.append({'type': u'deleted', 'path': path + [oldorder[oe]], 'data': oldobj})
+                ret.append({'type': u'added', 'path': path + [neworder[candidates[0][1]]], 'data': oldobj})
             ret.extend(candidates[0][2])
             oldunique.remove(candidates[0][0])
             newunique.remove(candidates[0][1])
     # handle added
     if newunique:
-        ret.extend(sorted([{'type': u'added', 'path': path + [neworder[e]], 'data': e} for e in newunique], key=itemgetter('path')))
+        ret.extend(sorted([{'type': u'added', 'path': path + [neworder[e]], 'data': getitem(n,path + [neworder[e]])} for e in newunique], key=itemgetter('path')))
     # handle deleted
     if oldunique:
-        ret.extend(sorted([{'type': u'deleted', 'path': path + [oldorder[e]], 'data': e} for e in oldunique], key=itemgetter('path')))
+        ret.extend(sorted([{'type': u'deleted', 'path': path + [oldorder[e]], 'data': getitem(o,path + [oldorder[e]])} for e in oldunique], key=itemgetter('path')))
     return ret
 
 class hashabledict(dict):
@@ -151,6 +115,19 @@ class hashabledict(dict):
         if not self.val:
             self.val=hash(str(sorted(self.items())))
         return self.val
+
+def normalize(obj):
+    if isinstance(obj,bytes):
+        return obj.decode('utf-8')
+    if isinstance(obj,str):
+        return obj
+    if hasattr(obj, 'isoformat'):
+        return obj.isoformat()
+    if isinstance(obj,dict):
+        return hashabledict({k:normalize(v) for k,v in obj.items()})
+    if hasattr(obj, '__iter__'):
+        return tuple(normalize(e) for e in obj)
+    return obj
 
 #### patch stuff starts here ####
 
@@ -202,7 +179,7 @@ def patch(obj, changes, guess=False, date=''):
                 #print("\tdeleting", change['path'])
                 del obj[change['path'][-1]]
             else:
-                print("wtf change: %s\nobj: %s" % (change, obj))
+                print("wtf deleted: %s\nobj: %s" % (change, obj))
 
         # handle adds
         for change in sorted(changes, key=lambda x: x['path']):
@@ -237,7 +214,7 @@ def patch(obj, changes, guess=False, date=''):
                 #print("\tchanging", change['path'])
                 obj[change['path'][-1]]=deepcopy(change['data'][1])
             else:
-                print("wtf", change, obj)
+                print("wtf change", change, obj)
     return res
 
 # todo stuff starts here
@@ -281,7 +258,7 @@ def revert(obj, changes):
                 #print("\tdeleting", change['path'])
                 del obj[change['path'][-1]]
             else:
-                print("wtf change: %s\nobj: %s" % (change, obj))
+                print("wtf add: %s\nobj: %s" % (change, obj))
 
         # handle changes
         for change in changes:
