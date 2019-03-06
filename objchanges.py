@@ -110,8 +110,8 @@ def difflist(old, new, path):
                 ret.extend(diff(oe,ne,path + [i]))
         return ret
 
-    oldunique=sorted(set(oldset) - set(newset), key=lambda x: oldorder[x])
-    newunique=sorted(set(newset) - set(oldset), key=lambda x: neworder[x])
+    oldunique=sorted(oldset - newset, key=lambda x: oldorder[x])
+    newunique=sorted(newset - oldset, key=lambda x: neworder[x])
     # all the same
     if not (oldunique or newunique): return
     #import code; code.interact(local=locals());
