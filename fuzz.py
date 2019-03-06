@@ -31,6 +31,7 @@ def rnd_obj():
     return choice(({},[],choice((5,23,42,3,17,1749)), rnd_str()))
 
 def del_path(paths, path):
+    if path == tuple(): return set()
     for p in list(paths):
         if p[:len(path)]==path: paths.remove(p)
     return paths
@@ -39,8 +40,7 @@ def mutate(old, paths):
     for _ in range(choice((1,5,20))):
         while True:
             new, paths= evolve(old, paths)
-            if old != new: break
-    return new, paths
+            if old != new: return new, paths
 
 def evolve(old, paths):
     obj = deepcopy(old)
@@ -56,12 +56,12 @@ def evolve(old, paths):
                 if not tmp: continue
                 k = choice(tmp)
                 item[k]=rnd_obj()
-                paths.add(tuple(path + tuple(k,)))
+                paths.add(path + tuple([k]))
                 done = True
             elif isinstance(item,list):
                 if len(item)>5: continue
                 item.insert(randrange(len(item)+1), rnd_obj())
-                paths.add(tuple(path + tuple([len(item)-1])))
+                paths.add(path + tuple([len(item)-1]))
                 done = True
         elif operation == 'del':
             if isinstance(item, dict):
