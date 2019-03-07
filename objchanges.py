@@ -52,27 +52,7 @@ def difflist(old, new, o, n, path):
     newset,neworder=normalize_list(new)
     if len(oldset) != len(old) or len(newset) != len(new):
         # we have duplicate elements in the list, fallback to naive difflist
-        os = len(old)
-        ns = len(new)
-        ret = []
-        if os>ns:
-            for i, (oe, ne) in enumerate(zip(old[:ns],new)):
-                ret.extend(_diff(oe,ne,o,n,path + [i]))
-            ret.extend(sorted([{'type': u'deleted',
-                                'path': path + [ns+i],
-                                'data': getitem(o,path + [ns+i])}
-                               for i in range(os - ns)], key=itemgetter('path')))
-        elif ns>os:
-            for i, (oe, ne) in enumerate(zip(old,new[:os])):
-                ret.extend(_diff(oe,ne,o,n,path + [i]))
-            ret.extend(sorted([{'type': u'added',
-                                'path': path + [os+i],
-                                'data': getitem(n,path + [os+i])}
-                               for i in range(ns - os)], key=itemgetter('path')))
-        else:
-            for i, (oe, ne) in enumerate(zip(old,new)):
-                ret.extend(_diff(oe,ne,o,n,path + [i]))
-        return ret
+        return naive_difflist(old, new, o, n, path)
 
     oldunique=sorted(oldset - newset, key=lambda x: oldorder[x])
     newunique=sorted(newset - oldset, key=lambda x: neworder[x])
@@ -101,6 +81,30 @@ def difflist(old, new, o, n, path):
     # handle deleted
     if oldunique:
         ret.extend(sorted([{'type': u'deleted', 'path': path + [oldorder[e]], 'data': getitem(o,path + [oldorder[e]])} for e in oldunique], key=itemgetter('path')))
+    return ret
+
+def naive_difflist(old, new, o, n, path):
+    # we have duplicate elements in the list, fallback to naive difflist
+    os = len(old)
+    ns = len(new)
+    ret = []
+    if os>ns:
+        for i, (oe, ne) in enumerate(zip(old[:ns],new)):
+            ret.extend(_diff(oe,ne,o,n,path + [i]))
+        ret.extend(sorted([{'type': u'deleted',
+                            'path': path + [ns+i],
+                            'data': getitem(o,path + [ns+i])}
+                           for i in range(os - ns)], key=itemgetter('path')))
+    elif ns>os:
+        for i, (oe, ne) in enumerate(zip(old,new[:os])):
+            ret.extend(_diff(oe,ne,o,n,path + [i]))
+        ret.extend(sorted([{'type': u'added',
+                            'path': path + [os+i],
+                            'data': getitem(n,path + [os+i])}
+                           for i in range(ns - os)], key=itemgetter('path')))
+    else:
+        for i, (oe, ne) in enumerate(zip(old,new)):
+            ret.extend(_diff(oe,ne,o,n,path + [i]))
     return ret
 
 class hashabledict(dict):
