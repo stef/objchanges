@@ -47,12 +47,6 @@ def _diff(old, new, o, n, path=[]):
         return [{'type': u'changed', 'path': path, 'data': (getitem(o,path), getitem(n,path))}]
     return []
 
-def normalize_list(obj):
-    if not obj: return set(), {}
-    objset=set(obj) # duplicates will be ignored
-    objorder={e: i for i, e in enumerate(obj)} # the last duplicates position will overwrite previous positions
-    return objset, objorder
-
 def difflist(old, new, o, n, path):
     oldset,oldorder=normalize_list(old)
     newset,neworder=normalize_list(new)
@@ -128,6 +122,12 @@ def normalize(obj):
     if hasattr(obj, '__iter__'):
         return tuple(normalize(e) for e in obj)
     return obj
+
+def normalize_list(obj):
+    if not obj: return set(), {}
+    objset=set(obj) # duplicates will be ignored
+    objorder={e: i for i, e in enumerate(obj)} # the last duplicates position will overwrite previous positions
+    return objset, objorder
 
 #### patch stuff starts here ####
 
