@@ -17,7 +17,7 @@
 
 # 2019 (C) Stefan Marsiske <7o5rfu92t@ctrlc.hu>
 
-import string
+import string, sys
 from copy import deepcopy
 from random import choice, choices, randrange
 from objchanges import getitem, diff, patch
@@ -101,5 +101,7 @@ while True:
         print("\nfail:\nold {!r}\nnew {!r}\ndiff {!r}".format(old,new,d))
         raise
         traceback.print_exc()
-    old = new
     i += 1
+    if '-v' in sys.argv and i % 10000 == 0:
+        print("\nold: {!r}\nnew {!r}".format(old,new))
+    old = new
