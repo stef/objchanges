@@ -72,7 +72,6 @@ def difflist(old, new, o, n, path):
                             for ne in list(newunique)],
                            key=lambda a: len(a[2]))
         # find deep matches first
-        print(oe, candidates)
         if len(candidates) and (len(candidates[0][2])*3<=(len(candidates[0][1]) if isinstance(candidates[0][1], tuple) else 3)):
             if oldorder[oe] != neworder[candidates[0][1]]:
                 oldobj = getitem(o, path + [oldorder[oe]])
