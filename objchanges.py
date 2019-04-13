@@ -56,6 +56,11 @@ def difflist(old, new, o, n, path):
 
     oldunique=sorted(oldset - newset, key=lambda x: oldorder[x])
     newunique=sorted(newset - oldset, key=lambda x: neworder[x])
+
+    # check if all-atomic list
+    if any(type(x) not in (dict, list, tuple, hashabledict) for x in oldunique+newunique):
+        return atomiclistdiff(o, oldset, oldorder, oldunique, n, newset, neworder, newunique, path)
+
     # all the same
     if not (oldunique or newunique): return []
     #import code; code.interact(local=locals());
@@ -67,6 +72,7 @@ def difflist(old, new, o, n, path):
                             for ne in list(newunique)],
                            key=lambda a: len(a[2]))
         # find deep matches first
+        print(oe, candidates)
         if len(candidates) and (len(candidates[0][2])*3<=(len(candidates[0][1]) if isinstance(candidates[0][1], tuple) else 3)):
             if oldorder[oe] != neworder[candidates[0][1]]:
                 oldobj = getitem(o, path + [oldorder[oe]])
@@ -81,6 +87,11 @@ def difflist(old, new, o, n, path):
     # handle deleted
     if oldunique:
         ret.extend(sorted([{'type': u'deleted', 'path': path + [oldorder[e]], 'data': getitem(o,path + [oldorder[e]])} for e in oldunique], key=itemgetter('path')))
+    no = sorted([(neworder[common], common) for common in oldset & newset])
+    oo = sorted([(oldorder[common], common) for common in oldset & newset])
+    for (ni, ne), (oi, oe) in zip(no,oo):
+        if ne == oe: continue
+        ret.append({'type': u'changed', 'path': path + [ni], 'data': (oe, ne)})
     return ret
 
 def naive_difflist(old, new, o, n, path):
@@ -105,6 +116,21 @@ def naive_difflist(old, new, o, n, path):
     else:
         for i, (oe, ne) in enumerate(zip(old,new)):
             ret.extend(_diff(oe,ne,o,n,path + [i]))
+    return ret
+
+def atomiclistdiff(o, oldset, oldorder, deleted, n, newset, neworder, added, path):
+    # todo test reordering atoms that are shared between old and new
+    ret = []
+    if added:
+        ret.extend(sorted([{'type': u'added', 'path': path + [neworder[e]], 'data': getitem(n,path + [neworder[e]])} for e in added], key=itemgetter('path')))
+    # handle deleted
+    if deleted:
+        ret.extend(sorted([{'type': u'deleted', 'path': path + [oldorder[e]], 'data': getitem(o,path + [oldorder[e]])} for e in deleted], key=itemgetter('path')))
+    no = sorted([(neworder[common], common) for common in oldset & newset])
+    oo = sorted([(oldorder[common], common) for common in oldset & newset])
+    for (ni, ne), (oi, oe) in zip(no,oo):
+        if ne == oe: continue
+        ret.append({'type': u'changed', 'path': path + [ni], 'data': (oe, ne)})
     return ret
 
 class hashabledict(dict):
