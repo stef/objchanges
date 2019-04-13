@@ -44,3 +44,13 @@ test(old,new)
 # {'type': 'deleted', 'path': ['procedure', 'subject', 1], 'data': '3.50.08 New technologies, biotechnology'}
 # {'type': 'deleted', 'path': ['procedure', 'subject', 3], 'data': '3.60.04 Nuclear energy, industry and safety'}
 # {'type': 'deleted', 'path': ['procedure', 'subject', 5], 'data': '8.70.02 Financial regulations'}
+
+old = {"procedure": {"subject": ["3.50.01.05 Research specific areas", "3.50.08 New technologies, biotechnology", "3.60.04 Nuclear energy, industry and safety", "8.70 Budget of the Union", "8.70.02 Financial regulations", "3.50.20 Scientific and technological cooperation and agreements"]}}
+new = {"procedure": {"subject": ["3.50.20 Scientific and technological cooperation and agreements", "3.60.15 Cooperation and agreements for energy", "8.70 Budget of the Union"]}}
+test(old,new)
+
+def dump(a,b):
+    for i,j in zip(a['procedure']['subject'],b['procedure']['subject']):
+        print("%80s %80s" % (i,j))
+
+dump(new,patch(old, diff(old,new)))
