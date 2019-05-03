@@ -185,7 +185,7 @@ def sortpaths(a,b):
     if a<b: return 1
     return 0
 
-def patch(obj, changes, guess=False, date=''):
+def patch(obj, changes):
     res = deepcopy(obj)
     for l in sorted({len(x['path']) for x in changes}):
         # first handle deletes, they are indexed based on the old indexes
