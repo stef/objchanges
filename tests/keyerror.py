@@ -13,7 +13,7 @@
 #    newunique=sorted(set(newset) - set(oldset), key=lambda x: neworder[x])
 #KeyError: 'JMb'
 
-from objchanges import diff, patch
+from objchanges import diff, patch, revert
 
 def test(a, b):
     print("x"*80)
@@ -32,6 +32,17 @@ def test(a, b):
         print("patch(a, diff(a,b))!=b")
         for c in tmp:
             print(c)
+
+    p = revert(b, d)
+    assert p is not None
+    tmp = diff(p,a)
+    if len(tmp) != 0:
+        print("_"*120)
+        print("revert(b, diff(a,b))!=a")
+        print("a2", p)
+        print("diff")
+        for x in sorted(tmp,key=lambda x: len(x['path'])): print(x)
+    assert (tmp==[])
 
 old={'23': [], 'c': 17}
 new={'23': ['JMb'], 'c': 17}

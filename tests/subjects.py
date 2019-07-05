@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # throws
 
-from objchanges import diff, patch
+from objchanges import diff, patch, revert
 
 def test(a, b):
-    #print("x"*80)
-    #print("a", a)
-    #print("")
-    #print("b", b)
-    #print("")
-    #print("_"*120)
+    print("x"*80)
+    print("a", a)
+    print("")
+    print("b", b)
+    print("")
+    print("_"*120)
     d = diff(a,b)
-    #print("")
+    print("")
     for x in sorted(d,key=lambda x: len(x['path'])): print(x)
-    #print("")
+    print("")
     p = patch(a, d)
     assert p is not None
     tmp = diff(p,b)
@@ -21,6 +21,17 @@ def test(a, b):
         print("_"*120)
         print("patch(a, diff(a,b))!=b")
         print("b2", p)
+        print("diff")
+        for x in sorted(tmp,key=lambda x: len(x['path'])): print(x)
+    assert (tmp==[])
+
+    p = revert(b, d)
+    assert p is not None
+    tmp = diff(p,a)
+    if len(tmp) != 0:
+        print("_"*120)
+        print("revert(b, diff(a,b))!=a")
+        print("a2", p)
         print("diff")
         for x in sorted(tmp,key=lambda x: len(x['path'])): print(x)
     assert (tmp==[])

@@ -247,28 +247,11 @@ def patch(obj, changes):
                 print("wtf change", change, obj)
     return res
 
-# todo stuff starts here
-#
 # todo write tests for revert
 def revert(obj, changes):
     res = deepcopy(obj)
     clen = len(changes)
     for l in sorted({len(x['path']) for x in changes}, reverse=True):
-        # undo deletes
-        for change in sorted(changes, key=lambda x: x['path']):
-            if change['type']!='deleted': continue
-            if len(change['path'])!=l: continue
-            obj=getitem(res,change['path'][:-1])
-            if obj is None:
-                print("could not resolve path '%s', action: %s\ndata: %s" % (change['path'], change['type'], change['data']))
-                #print(list(x['path'] for x in sorted(changes, key=functools.cmp_to_key(sortpaths))))
-                return
-            #print("\tadding", change['path'])
-            if isinstance(obj,list):
-                obj.insert(change['path'][-1],deepcopy(change['data']))
-            else:
-                obj[change['path'][-1]]=deepcopy(change['data'])
-
         # undo adds, they are indexed based on the new indexes
         for change in sorted(changes, key=functools.cmp_to_key(sortpaths)):
             if change['type']!='added': continue
@@ -289,6 +272,22 @@ def revert(obj, changes):
                 del obj[change['path'][-1]]
             else:
                 print("wtf add: %s\nobj: %s" % (change, obj))
+
+        # undo deletes
+        for change in sorted(changes, key=lambda x: x['path']):
+            if change['type']!='deleted': continue
+            if len(change['path'])!=l: continue
+            obj=getitem(res,change['path'][:-1])
+            if obj is None:
+                print("could not resolve path '%s', action: %s\ndata: %s" % (change['path'], change['type'], change['data']))
+                #print(list(x['path'] for x in sorted(changes, key=functools.cmp_to_key(sortpaths))))
+                return
+            #print("\tadding", change['path'])
+            if isinstance(obj,list):
+                obj.insert(change['path'][-1],deepcopy(change['data']))
+            else:
+                obj[change['path'][-1]]=deepcopy(change['data'])
+
 
         # handle changes
         for change in changes:
@@ -312,6 +311,9 @@ def revert(obj, changes):
 
     #print(dumps(res))
     return res
+
+# todo stuff starts here
+#
 #
 # todo test printing of diffs
 #def printdict(d,i=0, suppress=[]):

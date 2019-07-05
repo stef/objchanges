@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # throws
 
-from objchanges import diff, patch
+from objchanges import diff, patch, revert
 
 def test(a, b):
     print("x"*80)
@@ -25,6 +25,17 @@ def test(a, b):
         for i, x in enumerate(p): print("%2d" % i,sorted(x.items()))
         print("b")
         for i, x in enumerate(b): print("%2d" % i,sorted(x.items()))
+        print("diff")
+        for x in sorted(tmp,key=lambda x: len(x['path'])): print(x)
+    assert (tmp==[])
+
+    p = revert(b, d)
+    assert p is not None
+    tmp = diff(p,a)
+    if len(tmp) != 0:
+        print("_"*120)
+        print("revert(b, diff(a,b))!=a")
+        print("a2", p)
         print("diff")
         for x in sorted(tmp,key=lambda x: len(x['path'])): print(x)
     assert (tmp==[])

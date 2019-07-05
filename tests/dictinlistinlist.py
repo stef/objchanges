@@ -14,7 +14,7 @@
 #    objset.add(tuple(x))
 #TypeError: unhashable type: 'dict'
 
-from objchanges import diff, patch
+from objchanges import diff, patch, revert
 
 def test(a, b):
     print("x"*80)
@@ -33,6 +33,17 @@ def test(a, b):
         print("patch(a, diff(a,b))!=b")
         for c in tmp:
             print(c)
+    p = revert(b, d)
+    assert p is not None
+    tmp = diff(p,a)
+    if len(tmp) != 0:
+        print("_"*120)
+        print("revert(b, diff(a,b))!=a")
+        print("a2", p)
+        print("diff")
+        for x in sorted(tmp,key=lambda x: len(x['path'])): print(x)
+    assert (tmp==[])
+
 old={'a': [{'5': {'1': 3}, '2': {'2': 'sZ5'}}, ['ezw']], '1': 23, 'c': 'm0L'}
 oldpaths={('a', 1, 0), ('c',), ('a', 1), ('a', 0), ('a', 0, '2'), ('a',), ('a', 0, '5'), (), ('a', 0, '5', '1'), ('1',), ('a', 0, '2', '2')}
 new={'a': [{'5': {'1': 3}, '2': {'2': 'sZ5'}}, ['ezw', []]], '1': 23, 'c': 'm0L'}
