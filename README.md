@@ -7,4 +7,5 @@ is a fuzzer that creates random objects to test objchanges.
 if the objects are supported this should work fine
 ```
     assert diff(new, patch(old, diff(old, new))) in [None, []]
+    assert diff(old, revert(new, diff(old, new))) in [None, []]
 ```
