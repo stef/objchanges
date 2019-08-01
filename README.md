@@ -18,3 +18,27 @@ you can now also display the changes nicely formatted in a ANSI terminal:
    d = diff(old,new)
    print(contextdiff(new, p))
 ```
+
+!!cmdline
+
+you can also invoke objchanges directly on json files:
+
+```
+% cat new
+{"a": [{"5": {"1": 3}, "2": {"2": "sZ5"}}, ["ezw", []]], "1": 23, "c": "m0L"}
+% cat old
+{"a": [{"5": {"1": 3}, "2": {"2": "sZ5"}}, ["ezw"]], "1": 23, "c": "m0L"}
+
+# running simple diff
+% ./objchanges.py diff old new
+[{"type": "added", "path": ["a", 1], "data": ["ezw", []]}, {"type": "deleted", "path": ["a", 1], "data": ["ezw"]}]
+
+# patching old with diff
+% ./objchanges.py patch old <(./objchanges.py diff old new)
+{"a": [{"5": {"1": 3}, "2": {"2": "sZ5"}}, ["ezw", []]], "1": 23, "c": "m0L"}
+
+# reverting new with diff
+% ./objchanges.py revert new <(./objchanges.py diff old new)
+{"a": [{"5": {"1": 3}, "2": {"2": "sZ5"}}, ["ezw"]], "1": 23, "c": "m0L"}
+
+```

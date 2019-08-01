@@ -410,3 +410,22 @@ def revert(obj, changes):
 #            continue
 #        res.append(u"\n%s %s:\t%s" % (di['type'], u'/'.join([str(x) for x in di['path']]), printdict(di['data'])))
 #    return '\n'.join(res)
+
+
+if __name__ == "__main__":
+    import sys, json
+    argc=len(sys.argv)
+    if argc!=4:
+        print("%s diff old new\n%s patch old diff\n%s revert new diff")
+
+    with open(sys.argv[2], 'r') as fd:
+        a = json.load(fd)
+    with open(sys.argv[3], 'r') as fd:
+        b = json.load(fd)
+
+    if sys.argv[1] == 'diff':
+        print(json.dumps(diff(a,b)))
+    elif sys.argv[1] == 'patch':
+        print(json.dumps(patch(a,b)))
+    elif sys.argv[1] == 'revert':
+        print(json.dumps(revert(a,b)))
